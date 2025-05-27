@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { mockTransactions, mockCategories } from '@/data/mockData';
+import { transactions as mockTransactions, categories as mockCategories } from '@/data/mockData';
 import { formatCurrency, getSpendingByCategory, getTransactionsByDateRange, groupTransactionsByCategory } from '@/utils/finance';
 import { startOfMonth, endOfMonth, subMonths, format } from 'date-fns';
 
@@ -54,6 +54,18 @@ export default function BudgetPage() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Budget Overview</h1>
         <p className="text-gray-600 mt-1">Track your spending patterns by category</p>
+      </div>
+
+      {/* Personal Budget Notice */}
+      <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div className="flex items-center">
+          <div className="text-blue-800">
+            <h3 className="text-sm font-medium">💼 Your 50/20/20/10 Budget Model</h3>
+            <p className="text-sm mt-1">
+              Based on your ~R75k monthly income: 50% Essentials (R37k) • 20% Investments (R15k) • 20% Wants (R15k) • 10% Giving (R7.5k)
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Period Selector */}

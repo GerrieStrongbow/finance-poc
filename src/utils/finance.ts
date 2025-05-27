@@ -46,26 +46,244 @@ export function getAccountTypeColor(type: Account['type']): string {
   return colors[type] || 'bg-gray-100 text-gray-800';
 }
 
-export function getCategoryForTransaction(description: string): { category: string; confidence: number } {
-  const patterns = [
-    { pattern: /woolworths|pick.*pay|checkers|spar|shoprite/i, category: 'Groceries', confidence: 0.9 },
-    { pattern: /uber|bolt|taxi|transport/i, category: 'Transport', confidence: 0.85 },
-    { pattern: /shell|bp|engen|sasol|petrol|fuel/i, category: 'Transport', confidence: 0.9 },
-    { pattern: /takealot|amazon|online.*shop|shop.*online/i, category: 'Shopping', confidence: 0.8 },
-    { pattern: /restaurant|mcdonald|kfc|steers|nando/i, category: 'Food & Dining', confidence: 0.85 },
-    { pattern: /salary|payroll|income|wage/i, category: 'Income', confidence: 0.95 },
-    { pattern: /rent|mortgage|bond/i, category: 'Housing', confidence: 0.9 },
-    { pattern: /medical.*aid|discovery|momentum.*health|gems/i, category: 'Healthcare', confidence: 0.9 },
-    { pattern: /interest.*payment|bank.*interest/i, category: 'Income', confidence: 0.95 },
-  ];
+// Enhanced ML-based transaction categorization system
+interface CategoryRule {
+  patterns: RegExp[];
+  category: string;
+  baseConfidence: number;
+  keywords: string[];
+  merchantTypes: string[];
+  amountRanges?: { min?: number; max?: number; boost: number }[];
+}
 
-  for (const { pattern, category, confidence } of patterns) {
-    if (pattern.test(description)) {
-      return { category, confidence };
+const CATEGORIZATION_RULES: CategoryRule[] = [
+  {
+    patterns: [
+      /woolworths|ww\s|pick.*pay|checkers|spar|shoprite|ok.*foods|food.*lover|fruit.*veg/i,
+      /grocery|supermarket|market|food.*store/i
+    ],
+    category: 'Groceries',
+    baseConfidence: 0.92,
+    keywords: ['grocery', 'food', 'supermarket', 'fresh', 'produce'],
+    merchantTypes: ['grocery', 'supermarket'],
+    amountRanges: [
+      { min: 50, max: 500, boost: 0.05 },
+      { min: 500, max: 1500, boost: 0.03 }
+    ]
+  },
+  {
+    patterns: [
+      /uber|bolt|taxify|lyft|ride.*share|e.*hailing/i,
+      /taxi|transport|metro|gautrain|bus/i
+    ],
+    category: 'Transport',
+    baseConfidence: 0.88,
+    keywords: ['ride', 'trip', 'transport', 'travel', 'journey'],
+    merchantTypes: ['transport', 'ride_share'],
+    amountRanges: [
+      { min: 15, max: 200, boost: 0.08 }
+    ]
+  },
+  {
+    patterns: [
+      /shell|bp|engen|sasol|caltex|total/i,
+      /petrol|fuel|gas.*station|service.*station/i
+    ],
+    category: 'Transport',
+    baseConfidence: 0.94,
+    keywords: ['fuel', 'petrol', 'diesel', 'gas'],
+    merchantTypes: ['fuel', 'gas_station'],
+    amountRanges: [
+      { min: 300, max: 1200, boost: 0.06 }
+    ]
+  },
+  {
+    patterns: [
+      /takealot|amazon|online.*shop|shop.*online|konga|bid.*buy/i,
+      /e.*commerce|web.*store|digital.*store/i
+    ],
+    category: 'Shopping',
+    baseConfidence: 0.85,
+    keywords: ['online', 'delivery', 'purchase', 'order'],
+    merchantTypes: ['ecommerce', 'online_retail']
+  },
+  {
+    patterns: [
+      /restaurant|mcdonald|kfc|steers|nando|wimpy|spur|ocean.*basket/i,
+      /dining|eatery|cafe|coffee.*shop|bistro|grill/i
+    ],
+    category: 'Food & Dining',
+    baseConfidence: 0.89,
+    keywords: ['meal', 'dining', 'restaurant', 'food', 'eat'],
+    merchantTypes: ['restaurant', 'fast_food', 'cafe'],
+    amountRanges: [
+      { min: 80, max: 400, boost: 0.07 }
+    ]
+  },
+  {
+    patterns: [
+      /salary|payroll|income|wage|bonus|commission/i,
+      /payment.*received|deposit.*salary|emp.*payment/i
+    ],
+    category: 'Income',
+    baseConfidence: 0.96,
+    keywords: ['salary', 'wage', 'income', 'payment', 'earnings'],
+    merchantTypes: ['employer', 'payroll']
+  },
+  {
+    patterns: [
+      /rent|rental|lease|mortgage|bond.*payment|property.*payment/i,
+      /housing|accommodation|residential/i
+    ],
+    category: 'Housing',
+    baseConfidence: 0.93,
+    keywords: ['rent', 'property', 'housing', 'home', 'apartment'],
+    merchantTypes: ['property', 'real_estate'],
+    amountRanges: [
+      { min: 5000, max: 25000, boost: 0.05 }
+    ]
+  },
+  {
+    patterns: [
+      /medical.*aid|discovery.*health|momentum.*health|gems|bestmed|bonitas/i,
+      /health.*insurance|medical.*scheme|clinic|hospital|pharmacy/i
+    ],
+    category: 'Healthcare',
+    baseConfidence: 0.91,
+    keywords: ['medical', 'health', 'clinic', 'pharmacy', 'doctor'],
+    merchantTypes: ['healthcare', 'medical'],
+    amountRanges: [
+      { min: 1000, max: 5000, boost: 0.04 }
+    ]
+  },
+  {
+    patterns: [
+      /interest.*payment|bank.*interest|investment.*return|dividend/i,
+      /savings.*interest|fixed.*deposit.*interest/i
+    ],
+    category: 'Income',
+    baseConfidence: 0.97,
+    keywords: ['interest', 'dividend', 'return', 'investment'],
+    merchantTypes: ['bank', 'investment']
+  },
+  {
+    patterns: [
+      /absa.*fee|fnb.*fee|standard.*bank.*fee|nedbank.*fee|capitec.*fee/i,
+      /bank.*charge|account.*fee|service.*fee|atm.*fee|card.*fee/i
+    ],
+    category: 'Banking Fees',
+    baseConfidence: 0.95,
+    keywords: ['fee', 'charge', 'service', 'bank', 'account'],
+    merchantTypes: ['bank'],
+    amountRanges: [
+      { min: 5, max: 100, boost: 0.08 }
+    ]
+  },
+  {
+    patterns: [
+      /insurance|life.*cover|car.*insurance|home.*insurance|short.*term/i,
+      /assurance|cover|premium|policy/i
+    ],
+    category: 'Insurance',
+    baseConfidence: 0.90,
+    keywords: ['insurance', 'premium', 'cover', 'policy'],
+    merchantTypes: ['insurance'],
+    amountRanges: [
+      { min: 500, max: 3000, boost: 0.05 }
+    ]
+  },
+  {
+    patterns: [
+      /utility|electricity|water.*bill|municipal|city.*council/i,
+      /eskom|prepaid.*electricity|rates.*taxes/i
+    ],
+    category: 'Utilities',
+    baseConfidence: 0.92,
+    keywords: ['electricity', 'water', 'municipal', 'utility'],
+    merchantTypes: ['utility'],
+    amountRanges: [
+      { min: 500, max: 2500, boost: 0.06 }
+    ]
+  },
+  {
+    patterns: [
+      /telkom|vodacom|mtn|cell.*c|rain|webafrica/i,
+      /internet|wifi|data|cellular|mobile.*data/i
+    ],
+    category: 'Communications',
+    baseConfidence: 0.89,
+    keywords: ['internet', 'mobile', 'data', 'cellular'],
+    merchantTypes: ['telecom'],
+    amountRanges: [
+      { min: 200, max: 1000, boost: 0.06 }
+    ]
+  },
+  {
+    patterns: [
+      /netflix|showmax|dstv|multichoice|amazon.*prime|spotify/i,
+      /subscription|streaming|entertainment|music.*service/i
+    ],
+    category: 'Entertainment',
+    baseConfidence: 0.87,
+    keywords: ['subscription', 'streaming', 'entertainment', 'music'],
+    merchantTypes: ['entertainment', 'streaming'],
+    amountRanges: [
+      { min: 50, max: 500, boost: 0.07 }
+    ]
+  }
+];
+
+export function getCategoryForTransaction(description: string, amount?: number): { category: string; confidence: number } {
+  let bestMatch = { category: 'Uncategorized', confidence: 0.3 };
+  
+  for (const rule of CATEGORIZATION_RULES) {
+    let confidence = rule.baseConfidence;
+    let matchFound = false;
+    
+    // Check pattern matching
+    for (const pattern of rule.patterns) {
+      if (pattern.test(description)) {
+        matchFound = true;
+        break;
+      }
+    }
+    
+    if (!matchFound) {
+      // Check keyword matching with partial confidence
+      const descLower = description.toLowerCase();
+      const keywordMatches = rule.keywords.filter(keyword => 
+        descLower.includes(keyword.toLowerCase())
+      ).length;
+      
+      if (keywordMatches > 0) {
+        matchFound = true;
+        confidence = Math.max(0.4, confidence - 0.3 + (keywordMatches * 0.1));
+      }
+    }
+    
+    if (matchFound) {
+      // Apply amount-based confidence boosts
+      if (amount && rule.amountRanges) {
+        for (const range of rule.amountRanges) {
+          const absAmount = Math.abs(amount);
+          if ((!range.min || absAmount >= range.min) && 
+              (!range.max || absAmount <= range.max)) {
+            confidence += range.boost;
+            break;
+          }
+        }
+      }
+      
+      // Ensure confidence doesn't exceed 0.99
+      confidence = Math.min(0.99, confidence);
+      
+      if (confidence > bestMatch.confidence) {
+        bestMatch = { category: rule.category, confidence };
+      }
     }
   }
-
-  return { category: 'Uncategorized', confidence: 0.3 };
+  
+  return bestMatch;
 }
 
 export function getTransactionsByDateRange(

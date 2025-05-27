@@ -1,7 +1,7 @@
 export interface Account {
   id: string;
   name: string;
-  type: 'checking' | 'savings' | 'credit' | 'investment' | 'loan';
+  type: 'checking' | 'savings' | 'credit' | 'investment' | 'loan' | 'retirement';
   balance: number;
   currency: string;
   institution: string;
@@ -23,11 +23,12 @@ export interface Transaction {
 }
 
 export interface Category {
-  id: string;
+  id?: string;
   name: string;
   icon: string;
   color: string;
-  subcategories: string[];
+  subcategories?: string[];
+  target?: number; // Budget target for this category
 }
 
 export interface Budget {

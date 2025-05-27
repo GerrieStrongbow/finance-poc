@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { mockTransactions, mockCategories, mockAccounts } from '@/data/mockData';
+import { transactions as mockTransactions, categories as mockCategories, accounts as mockAccounts } from '@/data/mockData';
 import { formatCurrency, formatDate, getCategoryForTransaction } from '@/utils/finance';
 import { Transaction } from '@/types/finance';
 

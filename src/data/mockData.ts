@@ -1,6 +1,7 @@
 import { Account, Transaction, Category } from '@/types/finance';
+import { personalAccounts, allPersonalTransactions, personalCategories } from './personalData';
 
-export const mockAccounts: Account[] = [
+const mockAccounts: Account[] = [
   {
     id: '1',
     name: 'Primary Checking',
@@ -53,7 +54,7 @@ export const mockAccounts: Account[] = [
   }
 ];
 
-export const mockTransactions: Transaction[] = [
+const mockTransactions: Transaction[] = [
   {
     id: '1',
     accountId: '1',
@@ -169,7 +170,7 @@ export const mockTransactions: Transaction[] = [
   }
 ];
 
-export const mockCategories: Category[] = [
+const mockCategories: Category[] = [
   {
     id: '1',
     name: 'Income',
@@ -234,3 +235,20 @@ export const mockCategories: Category[] = [
     subcategories: []
   }
 ];
+
+// Toggle between mock data and personal data
+const USE_PERSONAL_DATA = true; // Set to false to use demo data
+
+// Main exports (dynamic based on USE_PERSONAL_DATA flag)
+export const accounts: Account[] = USE_PERSONAL_DATA ? personalAccounts : mockAccounts;
+export const transactions: Transaction[] = USE_PERSONAL_DATA ? allPersonalTransactions : mockTransactions;
+export const categories: Category[] = USE_PERSONAL_DATA ? personalCategories : mockCategories;
+
+// Utility to switch data source
+export const setDataSource = (usePersonal: boolean) => {
+  // Note: In a real app, this would trigger a state update/reload
+  console.log(`Switching to ${usePersonal ? 'personal' : 'mock'} data`);
+};
+
+// Keep original exports for backward compatibility
+export { mockAccounts, mockTransactions, mockCategories };

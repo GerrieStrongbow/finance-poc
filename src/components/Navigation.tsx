@@ -8,6 +8,7 @@ const navigation = [
   { name: 'Accounts', href: '/', icon: '🏦' },
   { name: 'Transactions', href: '/transactions', icon: '💳' },
   { name: 'Budget', href: '/budget', icon: '📊' },
+  { name: 'Bank Connections', href: '/connections', icon: '🔗' },
 ];
 
 export default function Navigation() {

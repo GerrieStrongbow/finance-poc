@@ -1,10 +1,12 @@
 'use client';
 
-import { mockAccounts } from '@/data/mockData';
+import { accounts } from '@/data/mockData';
 import { calculateNetWorth, formatCurrency, formatDate, getAccountTypeColor } from '@/utils/finance';
+import AssetAllocation from '@/components/AssetAllocation';
+import GoalTracking from '@/components/GoalTracking';
 
 export default function AccountsPage() {
-  const netWorth = calculateNetWorth(mockAccounts);
+  const netWorth = calculateNetWorth(accounts);
 
   return (
     <div className="p-6">
@@ -35,13 +37,23 @@ export default function AccountsPage() {
         </div>
       </div>
 
+      {/* Asset Allocation */}
+      <div className="mb-8">
+        <AssetAllocation accounts={accounts} />
+      </div>
+
+      {/* Goal Tracking */}
+      <div className="mb-8">
+        <GoalTracking />
+      </div>
+
       {/* Accounts List */}
       <div className="bg-white rounded-lg shadow">
         <div className="px-6 py-4 border-b border-gray-200">
           <h2 className="text-lg font-semibold text-gray-900">All Accounts</h2>
         </div>
         <div className="divide-y divide-gray-200">
-          {mockAccounts.map((account) => (
+          {accounts.map((account) => (
             <div key={account.id} className="px-6 py-4 hover:bg-gray-50">
               <div className="flex items-center justify-between">
                 <div className="flex-1">
@@ -73,13 +85,13 @@ export default function AccountsPage() {
       <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white rounded-lg shadow p-4">
           <div className="text-sm text-gray-500">Total Accounts</div>
-          <div className="text-xl font-bold text-gray-900">{mockAccounts.length}</div>
+          <div className="text-xl font-bold text-gray-900">{accounts.length}</div>
         </div>
         <div className="bg-white rounded-lg shadow p-4">
           <div className="text-sm text-gray-500">Checking & Savings</div>
           <div className="text-xl font-bold text-blue-600">
             {formatCurrency(
-              mockAccounts
+              accounts
                 .filter(a => ['checking', 'savings'].includes(a.type))
                 .reduce((sum, a) => sum + a.balance, 0)
             )}
@@ -89,7 +101,7 @@ export default function AccountsPage() {
           <div className="text-sm text-gray-500">Investments</div>
           <div className="text-xl font-bold text-purple-600">
             {formatCurrency(
-              mockAccounts
+              accounts
                 .filter(a => a.type === 'investment')
                 .reduce((sum, a) => sum + a.balance, 0)
             )}
@@ -99,7 +111,7 @@ export default function AccountsPage() {
           <div className="text-sm text-gray-500">Credit Used</div>
           <div className="text-xl font-bold text-red-600">
             {formatCurrency(
-              Math.abs(mockAccounts
+              Math.abs(accounts
                 .filter(a => a.type === 'credit')
                 .reduce((sum, a) => sum + a.balance, 0))
             )}
