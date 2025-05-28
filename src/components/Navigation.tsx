@@ -9,6 +9,7 @@ const navigation = [
   { name: 'Transactions', href: '/transactions', icon: '💳' },
   { name: 'Budget', href: '/budget', icon: '📊' },
   { name: 'Bank Connections', href: '/connections', icon: '🔗' },
+  { name: 'Import Data', href: '/import', icon: '📁' },
 ];
 
 export default function Navigation() {
@@ -41,8 +42,7 @@ export default function Navigation() {
       </nav>
       <div className="absolute bottom-0 w-64 p-6 bg-gray-50 border-t">
         <div className="text-xs text-gray-500">
-          <p>Last updated: {new Date().toLocaleDateString()}</p>
-          <p className="mt-1">Version 1.0.0</p>
+          <p>Version 1.0.0</p>
         </div>
       </div>
     </div>

@@ -27,7 +27,7 @@ export default function AssetAllocation({ accounts }: AssetAllocationProps) {
         .filter(account => account.type === 'checking')
         .reduce((sum, account) => sum + Math.max(0, account.balance), 0),
       percentage: 0,
-      color: 'bg-blue-500',
+      color: '#3B82F6', // blue-500
       accounts: accounts.filter(account => account.type === 'checking')
     },
     {
@@ -36,7 +36,7 @@ export default function AssetAllocation({ accounts }: AssetAllocationProps) {
         .filter(account => account.type === 'savings')
         .reduce((sum, account) => sum + account.balance, 0),
       percentage: 0,
-      color: 'bg-green-500',
+      color: '#10B981', // green-500
       accounts: accounts.filter(account => account.type === 'savings')
     },
     {
@@ -45,7 +45,7 @@ export default function AssetAllocation({ accounts }: AssetAllocationProps) {
         .filter(account => account.type === 'investment')
         .reduce((sum, account) => sum + account.balance, 0),
       percentage: 0,
-      color: 'bg-purple-500',
+      color: '#8B5CF6', // purple-500
       accounts: accounts.filter(account => account.type === 'investment')
     },
     {
@@ -54,7 +54,7 @@ export default function AssetAllocation({ accounts }: AssetAllocationProps) {
         .filter(account => account.type === 'retirement')
         .reduce((sum, account) => sum + account.balance, 0),
       percentage: 0,
-      color: 'bg-orange-500',
+      color: '#F59E0B', // orange-500
       accounts: accounts.filter(account => account.type === 'retirement')
     }
   ];
@@ -101,7 +101,7 @@ export default function AssetAllocation({ accounts }: AssetAllocationProps) {
                 <path
                   key={allocation.category}
                   d={pathData}
-                  className={allocation.color.replace('bg-', 'fill-')}
+                  fill={allocation.color}
                   stroke="white"
                   strokeWidth="2"
                 />
@@ -116,7 +116,10 @@ export default function AssetAllocation({ accounts }: AssetAllocationProps) {
         {nonZeroAllocations.map((allocation) => (
           <div key={allocation.category} className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className={`w-4 h-4 rounded ${allocation.color}`}></div>
+              <div 
+                className="w-4 h-4 rounded"
+                style={{ backgroundColor: allocation.color }}
+              ></div>
               <div>
                 <p className="font-medium text-gray-900">{allocation.category}</p>
                 <p className="text-sm text-gray-500">

@@ -798,7 +798,7 @@ export const additionalPersonalTransactions: Transaction[] = [
     confidence: 0.97
   },
   {
-    id: 'tx-uber-1',
+    id: 'tx-uber-2',
     accountId: 'g-current',
     amount: -85.50,
     description: 'UBER TRIP',

@@ -1,11 +1,12 @@
 'use client';
 
-import { accounts } from '@/data/mockData';
 import { calculateNetWorth, formatCurrency, formatDate, getAccountTypeColor } from '@/utils/finance';
 import AssetAllocation from '@/components/AssetAllocation';
 import GoalTracking from '@/components/GoalTracking';
+import { useData } from '@/contexts/DataContext';
 
 export default function AccountsPage() {
+  const { accounts } = useData();
   const netWorth = calculateNetWorth(accounts);
 
   return (
