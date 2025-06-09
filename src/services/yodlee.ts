@@ -199,13 +199,7 @@ export class YodleeService {
     try {
       console.log(`Getting FastLink token for user: ${loginName}`);
       
-      // For sandbox environment, we can use a simulated token for testing
-      if (this.config.apiUrl.includes('sandbox')) {
-        console.log('Using sandbox environment, returning simulated token');
-        // In sandbox, we can use a dummy token for testing
-        return token;
-      }
-      
+      // For sandbox environment, we need to generate a user token
       const response = await fetch(`${this.config.apiUrl}/user/accessTokens?appIds=10003600`, {
         method: 'POST',
         headers: {
@@ -214,22 +208,38 @@ export class YodleeService {
           'Authorization': `Bearer ${token}`,
           'loginName': loginName,
         },
+        body: JSON.stringify({
+          appIds: ['10003600']
+        })
       });
       
       if (!response.ok) {
         const errorText = await response.text();
         console.error('Error response:', errorText);
+        
+        // For sandbox, if this fails, we can try using the admin token directly
+        if (this.config.apiUrl.includes('sandbox')) {
+          console.log('Sandbox: Using admin token as fallback for FastLink');
+          return token;
+        }
+        
         throw new Error(`Failed to get FastLink token: ${response.status} ${response.statusText}`);
       }
       
       const data = await response.json();
       console.log('FastLink token response:', data);
       
-      if (!data.user?.accessTokens?.[0]?.value) {
-        throw new Error('Invalid FastLink token response format');
+      if (data.user?.accessTokens?.[0]?.value) {
+        return data.user.accessTokens[0].value;
       }
       
-      return data.user.accessTokens[0].value;
+      // Fallback for sandbox
+      if (this.config.apiUrl.includes('sandbox')) {
+        console.log('Sandbox: Using admin token as fallback');
+        return token;
+      }
+      
+      throw new Error('Invalid FastLink token response format');
     } catch (error) {
       console.error('Error getting FastLink token:', error);
       throw error;
@@ -376,10 +386,10 @@ export class YodleeService {
 
 // Default sandbox configuration
 export const yodleeSandboxConfig: YodleeConfig = {
-  apiUrl: 'https://sandbox.api.yodlee.com/ysl',
-  clientId: 's8IIVr7HACOZBCoGMJd82L2FBrH18mEMI0iD0ic4lr1elCAN',
-  clientSecret: 'fei87q4yZuq21XtvbVpG5KtDm5HxQBGHRUAEbY66qEfTv3rAQzLGSxdci17EsnGq',
-  fastlinkUrl: 'https://fl4.sandbox.yodlee.com/authenticate/restserver/fastlink',
+  apiUrl: process.env.NEXT_PUBLIC_YODLEE_API_URL || 'https://sandbox.api.yodlee.com/ysl',
+  clientId: process.env.NEXT_PUBLIC_YODLEE_CLIENT_ID || 's8IIVr7HACOZBCoGMJd82L2FBrH18mEMI0iD0ic4lr1elCAN',
+  clientSecret: process.env.NEXT_PUBLIC_YODLEE_CLIENT_SECRET || 'fei87q4yZuq21XtvbVpG5KtDm5HxQBGHRUAEbY66qEfTv3rAQzLGSxdci17EsnGq',
+  fastlinkUrl: process.env.NEXT_PUBLIC_YODLEE_FASTLINK_URL || 'https://fl4.sandbox.yodlee.com/authenticate/restserver/fastlink',
 };
 
 // Create a singleton instance with sandbox config

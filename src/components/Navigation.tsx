@@ -10,6 +10,7 @@ const navigation = [
   { name: 'Budget', href: '/budget', icon: '📊' },
   { name: 'Bank Connections', href: '/connections', icon: '🔗' },
   { name: 'Import Data', href: '/import', icon: '📁' },
+  { name: 'Yodlee Test', href: '/yodlee-test', icon: '🔬' },
 ];
 
 export default function Navigation() {
